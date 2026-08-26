@@ -1,12 +1,45 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { PaperProvider } from 'react-native-paper';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { RootStackParamList } from './navigation/types';
+import { PinsProvider } from './context/PinsContext';
+import { useLocationPermission } from './hooks/useLocationPermission';
+import { MenuScreen } from './screens/MenuScreen';
+import { MapScreen } from './screens/MapScreen';
+import { SettingsScreen } from './screens/SettingsScreen';
+import { DebugScreen } from './screens/DebugScreen';
+import { PinListScreen } from './screens/PinListScreen';
+import { EditPinScreen } from './screens/EditPinScreen';
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
+  useLocationPermission();
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <SafeAreaProvider>
+      <PaperProvider settings={{ icon: (props) => <MaterialCommunityIcons {...props} /> }}>
+        <PinsProvider>
+          <View style={styles.container}>
+            <StatusBar style="auto" />
+            <NavigationContainer>
+              <Stack.Navigator screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="Menu" component={MenuScreen} />
+                <Stack.Screen name="map" component={MapScreen} options={{ headerShown: true, title: 'Map' }} />
+                <Stack.Screen name="settings" component={SettingsScreen} options={{ headerShown: true, title: 'Settings' }} />
+                <Stack.Screen name="debug" component={DebugScreen} options={{ headerShown: true, title: 'Debug' }} />
+                <Stack.Screen name="pinList" component={PinListScreen} options={{ headerShown: true, title: 'Pins' }} />
+                <Stack.Screen name="editPin" component={EditPinScreen} options={{ headerShown: true, title: 'Edit Pin' }} />
+              </Stack.Navigator>
+            </NavigationContainer>
+          </View>
+        </PinsProvider>
+      </PaperProvider>
+    </SafeAreaProvider>
   );
 }
 
@@ -14,7 +47,5 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });
