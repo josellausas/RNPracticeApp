@@ -1,0 +1,59 @@
+import { FlatList, StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { ActivityIndicator, Button, List, Text } from 'react-native-paper';
+import { RootStackParamList } from '../navigation/types';
+import { Character } from '../interfaces/interfaces';
+import { fetchCharacters } from '../api/swapi';
+import { useAsyncData } from '../hooks/useAsyncData';
+
+type Props = NativeStackScreenProps<RootStackParamList, 'charactersList'>;
+
+export const CharacterListScreen = (_props: Props) => {
+  // fetchCharacters is module-scope, so its identity never changes.
+  const { state, retry } = useAsyncData(fetchCharacters);
+
+  return (
+    <SafeAreaView style={styles.container}>
+      {state.status === 'loading' && (
+        <View style={styles.centered}>
+          <ActivityIndicator animating size="large" />
+          <Text variant="bodyMedium" style={styles.message}>Loading…</Text>
+        </View>
+      )}
+
+      {state.status === 'error' && (
+        <View style={styles.centered}>
+          <Text variant="bodyMedium" style={styles.message}>{state.message}</Text>
+          <Button mode="contained" onPress={retry}>Retry</Button>
+        </View>
+      )}
+
+      {state.status === 'ready' && (
+        <FlatList
+          data={state.data}
+          keyExtractor={(character: Character) => character.name}
+          renderItem={({ item }) => (
+            <List.Item title={item.name} description={`Born ${item.birth_year}`} />
+          )}
+        />
+      )}
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  centered: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+  },
+  message: {
+    marginVertical: 12,
+    textAlign: 'center',
+  },
+});

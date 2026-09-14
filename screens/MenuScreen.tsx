@@ -9,6 +9,8 @@ const menuItems: MenuItem[] = [
   {title: "Map", route: "map"},
   {title: "Settings", route: "settings"},
   {title: "Debug", route: "debug"},
+  {title: "SW Characters", route: "charactersList"},
+  {title: "Fetch Screen", route: "fscreen"},
 ];
 
 export const MenuScreen = ({ navigation }: Props) => {
