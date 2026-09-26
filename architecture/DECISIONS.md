@@ -17,6 +17,7 @@ argue against isn't a decision — so every one names the alternative it beat.
 | [010](#adr-010-pin-creation-is-pessimistic-in-v1) | Pin creation is pessimistic in v1 | Accepted |
 | [011](#adr-011-hand-rolled-store-now-tanstack-query-at-a-named-trigger) | Hand-rolled store now, TanStack Query at a named trigger | Accepted |
 | [012](#adr-012-notes-are-a-separate-slice-and-a-separate-repository) | Notes are a separate slice and repository | Accepted |
+| [013](#adr-013-development-builds-with-continuous-native-generation) | Development builds with Continuous Native Generation | Accepted |
 
 ---
 
@@ -309,3 +310,34 @@ inside `Pin` would mean every note edit produces a new `Pin` object, which
 re-renders that pin's marker on the map for no reason.
 
 That last point is the concrete one: **slice boundaries are re-render boundaries.**
+
+---
+
+## ADR-013: Development builds with Continuous Native Generation
+
+**Question.** Expo Go can't load custom native code or be debugged natively. How do
+we get control over the native side?
+
+**Decision.** Drop Expo Go for development builds (`expo-dev-client`) and generate
+`ios/` and `android/` with `expo prebuild` from `app.config.ts`. The native folders
+are **gitignored and disposable**: every native change goes through `app.config.ts`
+or a config plugin, never a hand edit to the generated projects.
+
+**Why.** Any React Native library with native code now works, and native code can be
+debugged in Xcode / Android Studio. Keeping the native projects generated means an
+Expo SDK upgrade is a version bump plus `npm run prebuild`, not a manual diff of
+native files — and the config file is the single, reviewable source of truth for
+native configuration.
+
+**Alternatives it beat.**
+- *Commit the native folders after one prebuild.* Full freedom to hand-edit, but
+  plugins from newly added libraries stop applying and every upgrade becomes a manual
+  native diff.
+- *Leave Expo for a React Native Community CLI project.* Same native freedom, but
+  loses config plugins, `expo-location`, and SDK-managed version alignment for a
+  small app that doesn't need to.
+
+**Gave up.** Native edits must be written as config plugins (AppDelegate / MainActivity
+code changes need string-patching "dangerous mods", which are brittle across
+upgrades). The React Native version is tied to the Expo SDK release cadence. And
+running the app now needs Xcode / Android Studio locally instead of the Expo Go app.
