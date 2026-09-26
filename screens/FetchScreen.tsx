@@ -27,8 +27,11 @@ export const FetchScreen = ({navigation}: Props) => {
     return () => {cancelled = true; }; 
   }, []);
 
+  // TODO: Convert this to actual navigation
   if (selected) {
-    return <FilmView character={selected as Character} onBack={() => {setSelected(null)}}/>
+    return (
+        <FilmView character={selected as Character} onBack={() => {setSelected(null)}}/>
+    );
   }
 
   if (!characters) {
@@ -36,17 +39,16 @@ export const FetchScreen = ({navigation}: Props) => {
   }
 
   return (
-    <SafeAreaView>
       <FlatList 
         data={characters}
         keyExtractor={(r) => r.url}
+        contentInsetAdjustmentBehavior="automatic"
         renderItem={({item}) => (
           <Pressable onPress={() => setSelected(item)}>
             <Text style={{padding: 10, fontSize: 18}}>{item.name}</Text>
           </Pressable>
         )}
       />
-    </SafeAreaView>
   )
 }
 
@@ -74,11 +76,11 @@ const FilmView = ({character, onBack}: FilmViewProps) => {
   if (!films) return <Loading />;
 
   return (
-    <SafeAreaView style={{ flex: 1, padding: 16 }}>
+    <View style={{ flex: 1, padding: 16 }}>
       <Pressable onPress={onBack}><Text>Back</Text></Pressable>
       <Text style={{ fontSize: 22, fontWeight: '600', marginVertical: 12 }}>{character.name}</Text>
       {films.map(f => <Text key={f.title} style={{ paddingVertical: 6 }}>{f.title}</Text>)}
-    </SafeAreaView>
+    </View>
   );
 }
 

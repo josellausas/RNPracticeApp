@@ -15,7 +15,7 @@ export const CharacterListScreen = (_props: Props) => {
   const { state, retry } = useAsyncData(fetchCharacters, []);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {state.status === 'loading' && (
         <View style={styles.centered}>
           <ActivityIndicator animating size="large" />
@@ -33,13 +33,15 @@ export const CharacterListScreen = (_props: Props) => {
       {state.status === 'ready' && (
         <FlatList
           data={state.data}
+          contentInsetAdjustmentBehavior='automatic'
+          // contentContainerStyle={{paddingVertical: 16}}
           keyExtractor={(character: Character) => character.name}
           renderItem={({ item }) => (
             <List.Item title={item.name} description={`Born ${item.birth_year}`} />
           )}
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
