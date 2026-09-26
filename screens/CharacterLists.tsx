@@ -10,8 +10,9 @@ import { useAsyncData } from '../hooks/useAsyncData';
 type Props = NativeStackScreenProps<RootStackParamList, 'charactersList'>;
 
 export const CharacterListScreen = (_props: Props) => {
-  // fetchCharacters is module-scope, so its identity never changes.
-  const { state, retry } = useAsyncData(fetchCharacters);
+  // No deps: fetch once on mount. The hook keys off its deps array, not the
+  // fetcher's identity, so an inline arrow here would be safe too.
+  const { state, retry } = useAsyncData(fetchCharacters, []);
 
   return (
     <SafeAreaView style={styles.container}>
