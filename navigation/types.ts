@@ -7,7 +7,8 @@ export type RootStackParamList = {
   editPin: { pinId: string }
   charactersList: undefined
   fscreen: undefined
-  characterProfile: {profileId: string}
+  characterProfile: { characterId: string }
+  registerNfc: { characterId: string }
 };
 
 declare global {
