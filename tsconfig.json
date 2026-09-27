@@ -1,6 +1,14 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "strict": true
+    "strict": true,
+    // Naming `types` switches OFF automatic inclusion of every other @types
+    // package's *globals*, so anything relying on them must be listed here:
+    //   jest — describe/it/expect in the test files (TS2593 without it)
+    //   node — process.env in app.config.ts. @types/jest happens to reference
+    //          @types/node transitively today, but relying on that is fragile.
+    // Module types (@types/react and friends) are unaffected — they resolve
+    // through import statements, not this list.
+    "types": ["jest", "node"]
   }
 }
