@@ -8,6 +8,8 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { RootStackParamList } from './navigation/types';
 import { PinsProvider } from './context/PinsContext';
 import { CharactersProvider } from './context/CharactersContext';
+import { NfcProvider } from './nfc/NfcContext';
+import { createFakeNfcReader } from './nfc/adapters/fakeNfcReader';
 import { useLocationPermission } from './hooks/useLocationPermission';
 import { MenuScreen } from './screens/MenuScreen';
 import { MapScreen } from './screens/MapScreen';
@@ -19,8 +21,29 @@ import { CharacterListScreen } from './screens/CharacterLists';
 import {FetchScreen} from './screens/FetchScreen'
 import { CharacterProfileScreen } from './screens/CharacterProfile';
 import { RegisterNfcScreen } from './screens/RegisterNfcScreen';
+import { NfcReadScreen } from './screens/NfcReadScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+
+/*
+  THE adapter swap. Built once at module scope so its identity is stable.
+
+  Only the fake exists today. When the real adapters land, this is the single
+  line that changes — screens talk to the NfcReader port and cannot tell the
+  difference:
+
+    const nfc = { reader: createNfcManagerReader() };   // react-native-nfc-manager
+    const nfc = { reader: createNativeNtagReader() };   // local Swift module
+
+  Passing no `control` also makes DevNfcPanel render nothing, so the simulator
+  buttons disappear without a __DEV__ check anywhere.
+*/
+const nfc = createFakeNfcReader({
+  // Lets the dev panel offer an already-written tag, so the read flow is
+  // testable without registering one first. Lives here because the nfc layer
+  // must not know what a SWAPI id looks like.
+  sampleTagPayload: 'https://swapi.info/api/people/1',
+});
 
 export default function App() {
   useLocationPermission();
@@ -37,6 +60,7 @@ export default function App() {
         */}
         <PinsProvider>
           <CharactersProvider>
+            <NfcProvider reader={nfc.reader} control={nfc.control}>
             <View style={styles.container}>
               <StatusBar style="auto" />
               <NavigationContainer>
@@ -52,9 +76,11 @@ export default function App() {
                   <Stack.Screen name="characterProfile" component={CharacterProfileScreen} options={{ headerShown: true, title: 'Profile' }} />
                 {/* title is a placeholder — the screen overwrites it with the character's name. */}
                 <Stack.Screen name="registerNfc" component={RegisterNfcScreen} options={{ headerShown: true, title: 'Register NFC' }} />
+                <Stack.Screen name="nfcRead" component={NfcReadScreen} options={{ headerShown: true, title: 'NFC Read' }} />
                 </Stack.Navigator>
               </NavigationContainer>
             </View>
+            </NfcProvider>
           </CharactersProvider>
         </PinsProvider>
       </PaperProvider>
