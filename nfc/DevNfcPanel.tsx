@@ -2,7 +2,6 @@ import { useSyncExternalStore } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Button, Divider, Text } from 'react-native-paper';
 import { useNfcControl } from './NfcContext';
-import { FAKE_TAG } from './adapters/fakeNfcReader';
 
 /**
  * Simulator-only controls for driving the fake reader by hand.
@@ -41,7 +40,7 @@ export const DevNfcPanel = () => {
           </Text>
           <View style={styles.row}>
             <Button compact mode="contained" onPress={() =>
-              control.resolveWrite({ status: 'written', tag: { ...FAKE_TAG, payload: pending.payload } })}>
+              control.resolveWrite({ status: 'written', tag: { ...control.tagTemplate, payload: pending.payload } })}>
               Tag written
             </Button>
             <Button compact mode="outlined" onPress={() => control.resolveWrite({ status: 'read-only' })}>
@@ -72,7 +71,7 @@ export const DevNfcPanel = () => {
             <Button compact mode="contained" onPress={() =>
               control.resolveScan({
                 status: 'tag',
-                tag: { ...FAKE_TAG, payload: control.sampleTagPayload ?? null },
+                tag: { ...control.tagTemplate, payload: control.sampleTagPayload ?? null },
               })}>
               Tag: sample
             </Button>
@@ -81,13 +80,13 @@ export const DevNfcPanel = () => {
             <Button compact mode="contained" onPress={() =>
               control.resolveScan({
                 status: 'tag',
-                tag: { ...FAKE_TAG, payload: control.written[control.written.length - 1] },
+                tag: { ...control.tagTemplate, payload: control.written[control.written.length - 1] },
               })}>
               Tag: last written
             </Button>
           )}
           <Button compact mode="outlined" onPress={() =>
-            control.resolveScan({ status: 'tag', tag: FAKE_TAG })}>
+            control.resolveScan({ status: 'tag', tag: control.tagTemplate })}>
             Tag: blank
           </Button>
           <Button compact mode="outlined" onPress={() => control.resolveScan({ status: 'cancelled' })}>

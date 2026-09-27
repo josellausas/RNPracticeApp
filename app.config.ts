@@ -41,6 +41,18 @@ const config: ExpoConfig = {
         androidGoogleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY,
       },
     ],
+    [
+      // Writes the iOS entitlement (com.apple.developer.nfc.readersession.formats),
+      // NFCReaderUsageDescription, android.permission.NFC, and bumps compileSdkVersion.
+      //
+      // Note: that entitlement cannot be carried by a free-account provisioning
+      // profile, so signing for a physical iPhone needs a paid Apple Developer
+      // Program membership. Simulator builds are unaffected.
+      'react-native-nfc-manager',
+      {
+        nfcPermission: 'Allow $(PRODUCT_NAME) to read NFC tags so you can link them to characters.',
+      },
+    ],
   ],
 };
 

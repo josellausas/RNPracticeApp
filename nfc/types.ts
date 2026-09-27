@@ -11,7 +11,11 @@
 export interface NfcTag {
   /** Hardware UID as lowercase hex. Stable for the life of the tag. */
   id: string;
-  /** Decoded NDEF text payload, or null if the tag was blank. */
+  /**
+   * Decoded NDEF payload (this app writes URI records), or null if the tag was
+   * blank. Never an empty string — callers distinguish "blank tag" from
+   * "unrecognised tag" with a `=== null` check.
+   */
   payload: string | null;
 }
 

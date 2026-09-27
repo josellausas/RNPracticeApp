@@ -13,7 +13,7 @@ module.exports = {
   // RN and most Expo/community packages ship untranspiled ESM, so they must
   // NOT be ignored by the transform — hence the negative lookahead.
   transformIgnorePatterns: [
-    'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|react-native-paper|react-native-maps|react-native-safe-area-context|react-native-vector-icons|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)',
+    'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|react-native-paper|react-native-maps|react-native-nfc-manager|react-native-safe-area-context|react-native-vector-icons|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)',
   ],
 
   // `.claude/` holds worktree copies of this source; without this jest would

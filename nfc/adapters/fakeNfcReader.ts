@@ -6,6 +6,7 @@ import {
   NfcUnavailableReason,
   NfcWrite,
 } from '../types';
+import { NfcDevControl, PendingNfcRequest } from '../devControl';
 
 /**
  * An NfcReader with no hardware behind it.
@@ -22,41 +23,8 @@ import {
  * a double-start bug fails here instead of on a device.
  */
 
-export type PendingNfcRequest =
-  | { kind: 'scan'; prompt?: string }
-  | { kind: 'write'; payload: string; prompt?: string };
-
-export interface FakeNfcControl {
-  /** What the app is currently waiting on, or null when idle. */
-  readonly pending: PendingNfcRequest | null;
-  /** Payloads accepted by a 'written' outcome, in order. For assertions. */
-  readonly written: readonly string[];
-
-  /** Re-render hook for the dev panel. Returns an unsubscribe function. */
-  subscribe(listener: () => void): () => void;
-
-  /** Pre-load outcomes; consumed FIFO before a request is ever left pending. */
-  enqueueScan(outcome: NfcScan): void;
-  enqueueWrite(outcome: NfcWrite): void;
-
-  /** Settle whatever is pending. No-ops when idle or when the kind mismatches. */
-  resolveScan(outcome: NfcScan): void;
-  resolveWrite(outcome: NfcWrite): void;
-
-  setAvailable(available: boolean): void;
-  setUnavailableReason(reason: NfcUnavailableReason): void;
-
-  /**
-   * A payload the dev panel can offer as "a tag that already has something on
-   * it", so the read flow is testable without registering a tag first.
-   * Supplied by the app, because the nfc layer must not know what a SWAPI id
-   * looks like.
-   */
-  readonly sampleTagPayload?: string;
-
-  /** Back to a clean slate. Any in-flight request settles as cancelled. */
-  reset(): void;
-}
+/** The control surface lives in ../devControl so nothing outside tests imports this file. */
+export type FakeNfcControl = NfcDevControl;
 
 export interface FakeNfc {
   reader: NfcReader;
@@ -96,6 +64,12 @@ export const createFakeNfcReader = (options?: {
     busy: T,
     cancelled: T
   ): Promise<T> => {
+    // Aborted first, matching the ordering a real adapter must use: opening and
+    // instantly invalidating a CoreNFC session flashes the system sheet and
+    // counts against iOS session throttling. Previously this sat below the
+    // queue, which was a scripting artifact that would have made a shared
+    // contract suite dishonest.
+    if (requestOptions?.signal?.aborted) return Promise.resolve(cancelled);
     if (!available) return Promise.resolve(unavailable);
     if (pending !== null) return Promise.resolve(busy);
 
@@ -106,8 +80,6 @@ export const createFakeNfcReader = (options?: {
       }
       return Promise.resolve(queued);
     }
-
-    if (requestOptions?.signal?.aborted) return Promise.resolve(cancelled);
 
     return new Promise<T>((resolve) => {
       const finish = (outcome: NfcScan | NfcWrite) => {
@@ -162,6 +134,7 @@ export const createFakeNfcReader = (options?: {
     get written() {
       return written;
     },
+    tagTemplate: FAKE_TAG,
     sampleTagPayload: options?.sampleTagPayload,
     subscribe(listener) {
       listeners.add(listener);

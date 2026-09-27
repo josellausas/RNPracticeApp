@@ -1,6 +1,6 @@
 import { createContext, useContext, useMemo, ReactNode } from 'react';
 import { NfcReader } from './types';
-import { FakeNfcControl } from './adapters/fakeNfcReader';
+import { NfcDevControl } from './devControl';
 
 /**
  * Dependency injection for the NFC port.
@@ -17,7 +17,7 @@ interface NfcContextValue {
    * nothing, so the dev panel disappears on its own the moment you swap in
    * nfc-manager — no __DEV__ checks and no simulator sniffing.
    */
-  control?: FakeNfcControl;
+  control?: NfcDevControl;
 }
 
 const NfcContext = createContext<NfcContextValue | undefined>(undefined);
@@ -28,7 +28,7 @@ export const NfcProvider = ({
   children,
 }: {
   reader: NfcReader;
-  control?: FakeNfcControl;
+  control?: NfcDevControl;
   children: ReactNode;
 }) => {
   const value = useMemo(() => ({ reader, control }), [reader, control]);
@@ -50,7 +50,7 @@ export const useNfc = (): NfcReader => {
  * Only the dev panel should call this. A screen reaching for it would be
  * reaching around the port, which is the one thing this design forbids.
  */
-export const useNfcControl = (): FakeNfcControl | null => {
+export const useNfcControl = (): NfcDevControl | null => {
   const context = useContext(NfcContext);
   return context?.control ?? null;
 };

@@ -9,7 +9,9 @@ import { RootStackParamList } from './navigation/types';
 import { PinsProvider } from './context/PinsContext';
 import { CharactersProvider } from './context/CharactersContext';
 import { NfcProvider } from './nfc/NfcContext';
+import { guardReader } from './nfc/guardReader';
 import { createFakeNfcReader } from './nfc/adapters/fakeNfcReader';
+import { createNfcManagerReader } from './nfc/adapters/nfcManagerReader';
 import { useLocationPermission } from './hooks/useLocationPermission';
 import { MenuScreen } from './screens/MenuScreen';
 import { MapScreen } from './screens/MapScreen';
@@ -26,24 +28,45 @@ import { NfcReadScreen } from './screens/NfcReadScreen';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 /*
-  THE adapter swap. Built once at module scope so its identity is stable.
+  THE adapter swap — the only place that knows which NFC implementation is real.
 
-  Only the fake exists today. When the real adapters land, this is the single
-  line that changes — screens talk to the NfcReader port and cannot tell the
-  difference:
+  Flip USE_REAL_NFC to true to run against hardware. Nothing else changes:
+  screens talk to the NfcReader port and cannot tell the difference. Doing it
+  by hand rather than sniffing the platform keeps expo-device out of the tree
+  and makes the current mode obvious at a glance.
 
-    const nfc = { reader: createNfcManagerReader() };   // react-native-nfc-manager
-    const nfc = { reader: createNativeNtagReader() };   // local Swift module
-
-  Passing no `control` also makes DevNfcPanel render nothing, so the simulator
-  buttons disappear without a __DEV__ check anywhere.
+  Before flipping it, know what it costs:
+    - iOS on a device needs a PAID Apple Developer Program membership. The NFC
+      entitlement this project now requests cannot go in a free Personal Team
+      profile, so signing fails; on a simulator there is no radio at all.
+    - Android needs only a phone with NFC.
+    - `control` is not passed for the real adapter, so DevNfcPanel renders
+      nothing and the simulator buttons disappear on their own.
 */
-const nfc = createFakeNfcReader({
-  // Lets the dev panel offer an already-written tag, so the read flow is
-  // testable without registering one first. Lives here because the nfc layer
-  // must not know what a SWAPI id looks like.
-  sampleTagPayload: 'https://swapi.info/api/people/1',
-});
+const USE_REAL_NFC = true;
+
+const createNfc = () => {
+  if (USE_REAL_NFC) {
+    // guardReader is what makes a misbehaving library survivable: it races every
+    // call against the abort signal and a watchdog so a lost native callback can
+    // never strand the UI, turns rejections into error outcomes, and serializes
+    // sessions. Applied HERE, at module scope, because the reader lands in both
+    // screens' effect deps — a fresh identity per render would abort and restart
+    // the session on every render.
+    return { reader: guardReader(createNfcManagerReader()) };
+  }
+
+  const fake = createFakeNfcReader({
+    // Lets the dev panel offer an already-written tag, so the read flow is
+    // testable without registering one first. Lives here because the nfc layer
+    // must not know what a SWAPI id looks like.
+    sampleTagPayload: 'https://swapi.info/api/people/1',
+  });
+  return { reader: guardReader(fake.reader), control: fake.control };
+};
+
+/** Built once at module scope so the reader identity is stable across renders. */
+const nfc = createNfc();
 
 export default function App() {
   useLocationPermission();
