@@ -7,6 +7,7 @@ export type RootStackParamList = {
   editPin: { pinId: string }
   charactersList: undefined
   fscreen: undefined
+  characterProfile: {profileId: string}
 };
 
 declare global {

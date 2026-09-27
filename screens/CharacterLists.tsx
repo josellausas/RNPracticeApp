@@ -1,15 +1,15 @@
 import { FlatList, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ActivityIndicator, Button, List, Text } from 'react-native-paper';
 import { RootStackParamList } from '../navigation/types';
 import { Character } from '../interfaces/interfaces';
 import { fetchCharacters } from '../api/swapi';
 import { useAsyncData } from '../hooks/useAsyncData';
+import { CharacterCard } from '../components/CharCard';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'charactersList'>;
 
-export const CharacterListScreen = (_props: Props) => {
+export const CharacterListScreen = ({navigation}: Props) => {
   // No deps: fetch once on mount. The hook keys off its deps array, not the
   // fetcher's identity, so an inline arrow here would be safe too.
   const { state, retry } = useAsyncData(fetchCharacters, []);
@@ -34,10 +34,21 @@ export const CharacterListScreen = (_props: Props) => {
         <FlatList
           data={state.data}
           contentInsetAdjustmentBehavior='automatic'
-          // contentContainerStyle={{paddingVertical: 16}}
           keyExtractor={(character: Character) => character.name}
           renderItem={({ item }) => (
-            <List.Item title={item.name} description={`Born ${item.birth_year}`} />
+              <CharacterCard 
+                character={item} 
+                onProfile={
+                  () => {
+                    navigation.navigate('characterProfile', {profileId: item.name})
+                  }
+                }
+                onNFC={
+                  () => {
+                    console.log("TODO: NFC goes here")
+                  }
+                }
+                />
           )}
         />
       )}

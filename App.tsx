@@ -16,6 +16,7 @@ import { PinListScreen } from './screens/PinListScreen';
 import { EditPinScreen } from './screens/EditPinScreen';
 import { CharacterListScreen } from './screens/CharacterLists';
 import {FetchScreen} from './screens/FetchScreen'
+import { CharacterProfileScreen } from './screens/CharacterProfile';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -38,6 +39,7 @@ export default function App() {
                 <Stack.Screen name="editPin" component={EditPinScreen} options={{ headerShown: true, title: 'Edit Pin' }} />
                 <Stack.Screen name="charactersList" component={CharacterListScreen} options={{ headerShown: true, title: 'SW Characters' }} />
                 <Stack.Screen name="fscreen" component={FetchScreen} options={{ headerShown: true, title: 'Fetch Characters' }} />
+                <Stack.Screen name="characterProfile" component={CharacterProfileScreen} options={{ headerShown: true, title: 'Profile' }} />
               </Stack.Navigator>
             </NavigationContainer>
           </View>

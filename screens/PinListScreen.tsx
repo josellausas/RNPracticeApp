@@ -11,7 +11,6 @@ export const PinListScreen = ({ navigation }: Props) => {
   const { pins } = usePins();
 
   return (
-    <SafeAreaView style={styles.container}>
       <FlatList
         style={styles.list}
         contentContainerStyle={styles.listCard}
@@ -27,7 +26,6 @@ export const PinListScreen = ({ navigation }: Props) => {
         ItemSeparatorComponent={Divider}
         ListEmptyComponent={<Text style={styles.empty}>No pins yet. Tap the map to drop one.</Text>}
       />
-    </SafeAreaView>
   );
 }
 
