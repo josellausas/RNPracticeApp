@@ -11,34 +11,16 @@ import { Character } from '../interfaces/interfaces';
 import { AsyncState, useAsyncData } from '../hooks/useAsyncData';
 import { fetchCharacters } from '../api/swapi';
 
-/**
- * The characters data layer.
- *
- * Two responsibilities, deliberately split:
- *   - This provider OWNS the data (the list plus its loading/error status).
- *   - Screens own only triggers. No screen owns the data, so no screen depends
- *     on another screen having run.
- *
- * Screens never import `CharactersContext` itself — note it is not exported.
- * They go through `useCharacters` / `useCharacter`. That indirection is the seam:
- * swapping context for Zustand or react-query later changes this file only.
- */
 interface CharactersContextValue {
-  /** Reuses AsyncState so every consumer handles the same cases. */
   state: AsyncState<Character[]>;
-  /** Begin the first load. Idempotent — safe to call from every consumer. */
   load: () => void;
-  /** Force a refetch. Driven by the list screen; the profile screen cannot reach it. */
   refresh: () => void;
 }
 
 const CharactersContext = createContext<CharactersContextValue | undefined>(undefined);
 
 export const CharactersProvider = ({ children }: { children: ReactNode }) => {
-  // Nothing fetches until something asks. Without this the request would fire
-  // when the provider mounts — app launch — making every user pay for Star Wars
-  // characters even if they only ever open the map.
-  const [enabled, setEnabled] = useState(false);
+  const [enabled, setEnabled] = useState(false); // Characters provider is mounted at app root, use enabled to load on demand
   const { state, retry } = useAsyncData(fetchCharacters, [], { enabled });
 
   // Idempotent by construction: setting `enabled` to true when it already is
@@ -53,9 +35,6 @@ export const CharactersProvider = ({ children }: { children: ReactNode }) => {
   // Every value the object captures is in the deps array. `load` and `refresh`
   // are useCallback-stable and `retry` is stable inside useAsyncData, so in
   // practice this only rebuilds when `state` actually changes.
-  //
-  // Compare PinsContext, whose useMemo lists [pins] while also capturing three
-  // functions rebuilt every render — `npm run lint` still flags it.
   const value = useMemo(() => ({ state, load, refresh }), [state, load, refresh]);
 
   return <CharactersContext.Provider value={value}>{children}</CharactersContext.Provider>;

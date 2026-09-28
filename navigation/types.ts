@@ -10,6 +10,7 @@ export type RootStackParamList = {
   characterProfile: { characterId: string }
   registerNfc: { characterId: string }
   nfcRead: undefined
+  practice: undefined
 };
 
 declare global {

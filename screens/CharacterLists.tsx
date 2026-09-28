@@ -9,18 +9,10 @@ import { CharacterCard } from '../components/CharCard';
 type Props = NativeStackScreenProps<RootStackParamList, 'charactersList'>;
 
 export const CharacterListScreen = ({ navigation }: Props) => {
-  // The data now lives in CharactersProvider, not here. This screen kept the
-  // trigger (`refresh`) and gave up ownership of the list — which is why the
-  // profile screen can read it without going through this component.
-  //
-  // None of the JSX below had to change when the data moved, because the
-  // context re-exports the same AsyncState union this screen already rendered.
   const { state, refresh } = useCharacters();
 
   return (
     <View style={styles.container}>
-      {/* 'idle' lasts one frame — useCharacters kicks the load off on mount — but
-          it still needs a branch, or the screen flashes empty before loading. */}
       {(state.status === 'idle' || state.status === 'loading') && (
         <View style={styles.centered}>
           <ActivityIndicator animating size="large" />
@@ -39,8 +31,6 @@ export const CharacterListScreen = ({ navigation }: Props) => {
         <FlatList
           data={state.data}
           contentInsetAdjustmentBehavior='automatic'
-          // Keyed on the stable id, not the display name: duplicate keys make
-          // FlatList recycle the wrong row, which is a miserable bug to chase.
           keyExtractor={(character: Character) => character.url}
           renderItem={({ item }) => (
               <CharacterCard 

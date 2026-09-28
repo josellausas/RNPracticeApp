@@ -24,6 +24,7 @@ import {FetchScreen} from './screens/FetchScreen'
 import { CharacterProfileScreen } from './screens/CharacterProfile';
 import { RegisterNfcScreen } from './screens/RegisterNfcScreen';
 import { NfcReadScreen } from './screens/NfcReadScreen';
+import { PracticeScreen } from './screens/PracticeScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -47,25 +48,14 @@ const USE_REAL_NFC = true;
 
 const createNfc = () => {
   if (USE_REAL_NFC) {
-    // guardReader is what makes a misbehaving library survivable: it races every
-    // call against the abort signal and a watchdog so a lost native callback can
-    // never strand the UI, turns rejections into error outcomes, and serializes
-    // sessions. Applied HERE, at module scope, because the reader lands in both
-    // screens' effect deps — a fresh identity per render would abort and restart
-    // the session on every render.
     return { reader: guardReader(createNfcManagerReader()) };
   }
 
   const fake = createFakeNfcReader({
-    // Lets the dev panel offer an already-written tag, so the read flow is
-    // testable without registering one first. Lives here because the nfc layer
-    // must not know what a SWAPI id looks like.
     sampleTagPayload: 'https://swapi.info/api/people/1',
   });
   return { reader: guardReader(fake.reader), control: fake.control };
 };
-
-/** Built once at module scope so the reader identity is stable across renders. */
 const nfc = createNfc();
 
 export default function App() {
@@ -74,13 +64,6 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <PaperProvider settings={{ icon: (props) => <MaterialCommunityIcons {...props} /> }}>
-        {/*
-          Both providers sit outside NavigationContainer so their data outlives
-          any single screen: popping the list screen does not throw the fetched
-          characters away. Kept as two siblings rather than one merged
-          "AppContext" — merging them would re-render every character consumer
-          whenever a pin changes.
-        */}
         <PinsProvider>
           <CharactersProvider>
             <NfcProvider reader={nfc.reader} control={nfc.control}>
@@ -97,9 +80,9 @@ export default function App() {
                   <Stack.Screen name="charactersList" component={CharacterListScreen} options={{ headerShown: true, title: 'SW Characters' }} />
                   <Stack.Screen name="fscreen" component={FetchScreen} options={{ headerShown: true, title: 'Fetch Characters' }} />
                   <Stack.Screen name="characterProfile" component={CharacterProfileScreen} options={{ headerShown: true, title: 'Profile' }} />
-                {/* title is a placeholder — the screen overwrites it with the character's name. */}
-                <Stack.Screen name="registerNfc" component={RegisterNfcScreen} options={{ headerShown: true, title: 'Register NFC' }} />
-                <Stack.Screen name="nfcRead" component={NfcReadScreen} options={{ headerShown: true, title: 'NFC Read' }} />
+                  <Stack.Screen name="registerNfc" component={RegisterNfcScreen} options={{ headerShown: true, title: 'Register NFC' }} />
+                  <Stack.Screen name="nfcRead" component={NfcReadScreen} options={{ headerShown: true, title: 'NFC Read' }} />
+                  <Stack.Screen name="practice" component={PracticeScreen} options={{ headerShown: true, title: 'Practice' }} />
                 </Stack.Navigator>
               </NavigationContainer>
             </View>

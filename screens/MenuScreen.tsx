@@ -14,6 +14,7 @@ const menuItems: MenuItem[] = [
   {title: "SW Characters", route: "charactersList"},
   // {title: "Fetch Screen", route: "fscreen"},
   {title: "NFC Read", route: "nfcRead"},
+  {title: "Practice", route: "practice"},
 ];
 
 export const MenuScreen = ({ navigation }: Props) => {
